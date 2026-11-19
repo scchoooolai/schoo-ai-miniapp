@@ -1,0 +1,1 @@
+# schoo-ai-miniapp
