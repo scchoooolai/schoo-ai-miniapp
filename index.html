@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090b14">
+  <title>Schoo AI</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#090b14; --panel:#111525; --panel2:#171d31; --line:#252d46;
+      --text:#f4f6ff; --muted:#929bb5; --purple:#8b5cf6; --blue:#438cff;
+      --mint:#45dfbd; --radius:20px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; color:var(--text);
+      background:radial-gradient(ellipse at 80% -10%, #29205b 0, transparent 36%), var(--bg);
+      font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      padding:env(safe-area-inset-top) 0 calc(86px + env(safe-area-inset-bottom));
+    }
+    button,input,textarea { font:inherit; }
+    button { color:inherit; cursor:pointer; }
+    .app { width:min(100%,560px); margin:0 auto; padding:18px 16px 0; }
+    .top { display:flex; align-items:center; justify-content:space-between; margin:6px 0 22px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:800; font-size:19px; letter-spacing:.2px; }
+    .logo { width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--purple),var(--blue));box-shadow:0 8px 28px #6948e855;font-size:21px; }
+    .status { color:var(--mint); background:#12342f;border:1px solid #205d51;border-radius:99px;padding:6px 10px;font-size:11px;font-weight:700; }
+    .welcome { padding:22px;border:1px solid #39305f;border-radius:24px;
+      background:linear-gradient(125deg,#211a43,#171d35 65%,#12263a); position:relative;overflow:hidden; }
+    .welcome:after { content:"✦";position:absolute;right:22px;top:10px;font-size:74px;color:#ffffff12; }
+    .eyebrow { color:#bca8ff;text-transform:uppercase;letter-spacing:1.5px;font-size:10px;font-weight:800; }
+    h1 { font-size:25px;line-height:1.16;margin:9px 0 8px;max-width:270px; }
+    .sub { color:#b4bad0;font-size:13px;max-width:310px;margin:0; }
+    .stats { display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0 22px; }
+    .stat { background:#111625;border:1px solid var(--line);border-radius:16px;padding:12px 10px;min-width:0; }
+    .stat b { display:block;font-size:18px; }
+    .stat span { color:var(--muted);font-size:10px; }
+    .section-head { display:flex;justify-content:space-between;align-items:center;margin:23px 2px 12px; }
+    .section-head h2 { font-size:16px;margin:0; }
+    .hint { color:var(--muted);font-size:11px; }
+    .quick { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+    .tile { text-align:left;border:1px solid var(--line);border-radius:17px;padding:14px;background:var(--panel);min-height:91px;transition:.15s; }
+    .tile:active,.nav button:active,.primary:active { transform:scale(.98); }
+    .tile .emoji { font-size:22px;display:block;margin-bottom:7px; }
+    .tile b { display:block;font-size:13px; }
+    .tile small { display:block;color:var(--muted);font-size:10px;margin-top:3px; }
+    .tile.wide { grid-column:span 2;min-height:72px;display:flex;align-items:center;gap:13px; }
+    .tile.wide .emoji { margin:0;font-size:25px; }
+    .chat-card { border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:14px; }
+    .chat-card textarea { width:100%;resize:vertical;min-height:74px;background:transparent;color:var(--text);border:0;outline:0; }
+    .chat-bottom { display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:11px; }
+    .small-note { color:var(--muted);font-size:10px; }
+    .primary { border:0;border-radius:13px;padding:10px 16px;font-weight:750;background:linear-gradient(110deg,var(--purple),var(--blue)); }
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-title { font-size:23px;margin:8px 0 5px; }
+    .page-desc { color:var(--muted);font-size:12px;margin:0 0 18px; }
+    .tool-list { display:grid;gap:9px; }
+    .tool-row { display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);background:var(--panel);border-radius:16px;text-align:left;width:100%; }
+    .tool-icon { width:42px;height:42px;border-radius:13px;background:var(--panel2);display:grid;place-items:center;font-size:20px;flex:none; }
+    .tool-row b { display:block;font-size:13px; }
+    .tool-row small { display:block;color:var(--muted);font-size:11px;margin-top:2px; }
+    .tool-row .arrow { margin-left:auto;color:var(--muted); }
+    .panel { padding:16px;border:1px solid var(--line);background:var(--panel);border-radius:18px;margin-bottom:11px; }
+    .panel h3 { font-size:14px;margin:0 0 9px; }
+    .panel p { color:var(--muted);font-size:12px;margin:0; }
+    .bottom { position:fixed;bottom:0;left:0;right:0;padding:9px 12px calc(9px + env(safe-area-inset-bottom));background:#0c0f1bea;backdrop-filter:blur(18px);border-top:1px solid #252d46;z-index:5; }
+    .nav { width:min(100%,560px);margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:5px; }
+    .nav button { border:0;background:transparent;color:#7f89a5;border-radius:13px;padding:7px 2px;font-size:10px;display:grid;gap:3px;justify-items:center; }
+    .nav button span { font-size:19px; }
+    .nav button.active { color:#c8b7ff;background:#282044; }
+    .toast { position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#252b40;border:1px solid #424b69;border-radius:12px;padding:10px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:10;max-width:90%;text-align:center; }
+    .toast.show { opacity:1; }
+    .chat-output { white-space:pre-wrap;color:#d9def0;font-size:13px;margin-top:12px; }
+    @media(min-width:500px){.quick{grid-template-columns:repeat(3,minmax(0,1fr))}.tile.wide{grid-column:span 2}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="brand"><div class="logo">✦</div><span>SCHOO AI</span></div>
+      <div class="status">● AI LOCAL</div>
+    </header>
+
+    <section class="page active" id="home">
+      <div class="welcome">
+        <div class="eyebrow">ТВОЙ AI-ПОМОЩНИК</div>
+        <h1>Идеи становятся реальностью.</h1>
+        <p class="sub">Общайся, учись, создавай и решай задачи в одном месте.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="remaining">20</b><span>запросов сегодня</span></div>
+        <div class="stat"><b>+3</b><span>ежедневный бонус</span></div>
+        <div class="stat"><b>∞</b><span>память выключена*</span></div>
+      </div>
+      <div class="section-head"><h2>Быстрый доступ</h2><span class="hint">выбери инструмент</span></div>
+      <div class="quick">
+        <button class="tile" data-tool="chat"><span class="emoji">💬</span><b>AI-чат</b><small>Задай любой вопрос</small></button>
+        <button class="tile" data-tool="photo"><span class="emoji">📸</span><b>Решить по фото</b><small>Задачи и изображения</small></button>
+        <button class="tile" data-tool="ideas"><span class="emoji">💡</span><b>Генератор идей</b><small>Найди вдохновение</small></button>
+        <button class="tile" data-tool="english"><span class="emoji">🇬🇧</span><b>Английский</b><small>Практика диалога</small></button>
+        <button class="tile" data-tool="templates"><span class="emoji">📝</span><b>Шаблоны</b><small>Готовые запросы</small></button>
+        <button class="tile" data-tool="characters"><span class="emoji">🎭</span><b>Персонажи</b><small>Выбери стиль общения</small></button>
+        <button class="tile wide" data-tool="wheel"><span class="emoji">🎡</span><span><b>Колесо фортуны</b><small>Ежедневный бесплатный бонус</small></span></button>
+      </div>
+      <div class="section-head"><h2>Спроси SCHOO AI</h2><span class="hint">демо-интерфейс</span></div>
+      <div class="chat-card">
+        <textarea id="prompt" placeholder="Напиши свой вопрос..."></textarea>
+        <div class="chat-bottom"><span class="small-note">Ответ появится после подключения сервера</span><button class="primary" id="send">Отправить ↗</button></div>
+        <div class="chat-output" id="chatOutput"></div>
+      </div>
+    </section>
+
+    <section class="page" id="tools">
+      <h2 class="page-title">Инструменты</h2><p class="page-desc">Все дополнительные возможности в одном месте.</p>
+      <div class="tool-list" id="toolList"></div>
+    </section>
+
+    <section class="page" id="activity">
+      <h2 class="page-title">Активность</h2><p class="page-desc">Твоя статистика и бонусы.</p>
+      <div class="panel"><h3>🎁 Ежедневный бонус</h3><p>Получай дополнительные запросы раз в 24 часа. Начисление будет работать после подключения базы данных.</p><br><button class="primary" data-tool="bonus">Получить +3 запроса</button></div>
+      <div class="panel"><h3>🎡 Колесо фортуны</h3><p>Бесплатное ежедневное вращение с небольшими бонусами запросов.</p><br><button class="primary" data-tool="wheel">Крутить колесо</button></div>
+      <div class="panel"><h3>👥 Реферальная программа</h3><p>Приглашай друзей по своей ссылке и следи за приглашениями.</p><br><button class="primary" data-tool="referrals">Мои приглашения</button></div>
+      <div class="panel"><h3>🎟 Промокод</h3><p>Вводи промокоды, чтобы получать бонусы.</p><br><button class="primary" data-tool="promo">Ввести промокод</button></div>
+    </section>
+
+    <section class="page" id="profile">
+      <h2 class="page-title">Профиль</h2><p class="page-desc">Настройки и личные данные.</p>
+      <div class="panel"><h3>🧠 Память о тебе</h3><p>Автоматическая память будет сохранять только подходящие предпочтения и интересы. Здесь можно будет посмотреть и удалить сохранённое.</p><br><button class="primary" data-tool="memory">Настроить память</button></div>
+      <div class="panel"><h3>🌐 Язык интерфейса</h3><p>Русский / English</p><br><button class="primary" data-tool="language">Изменить язык</button></div>
+      <div class="panel"><h3>📚 История диалогов</h3><p>Последние беседы и продолжение старых разговоров.</p><br><button class="primary" data-tool="history">Открыть историю</button></div>
+      <div class="panel"><h3>⚙️ Приватность</h3><p>Управление памятью, экспортом и удалением данных.</p><br><button class="primary" data-tool="privacy">Настройки приватности</button></div>
+    </section>
+  </main>
+
+  <div class="bottom">
+    <nav class="nav">
+      <button class="active" data-page="home"><span>⌂</span>Главная</button>
+      <button data-page="tools"><span>✣</span>Инструменты</button>
+      <button data-page="activity"><span>◈</span>Активность</button>
+      <button data-page="profile"><span>◎</span>Профиль</button>
+    </nav>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor("#090b14"); tg.setBackgroundColor("#090b14"); } catch(e) {} }
+
+    const tools = [
+      ["💬","AI-чат","Вопросы, ответы и продолжение диалога","chat"],
+      ["📸","Анализ фото","Решение задач и разбор изображений","photo"],
+      ["🧠","Память","Автоматическая память и управление данными","memory"],
+      ["📝","Шаблоны запросов","Посты, переводы, объяснения кода","templates"],
+      ["🎭","Персонажи","Творческий наставник, детектив и другие роли","characters"],
+      ["🎲","Ролевые игры","Детективы и интерактивные истории","roleplay"],
+      ["📔","Дневник настроения","Записи и обзор самочувствия за месяц","mood"],
+      ["💡","Генератор идей","Идеи для проектов, контента и учёбы","ideas"],
+      ["🇬🇧","Тренажёр английского","Диалоги и практика языка","english"],
+      ["📖","Аудио-сказки","Истории с возможностью озвучивания","story"],
+      ["🥗","Рецепты по фото","Идеи блюд из продуктов на фото","recipes"],
+      ["👕","Стилист по фото","Подбор сочетаний одежды","stylist"],
+      ["📄","Документы","Краткий пересказ PDF и Word","document"],
+      ["🔗","Анализ ссылки","Чтение и пересказ веб-страницы","url"],
+      ["🎡","Колесо фортуны","Ежедневный бесплатный бонус","wheel"]
+    ];
+    const list = document.getElementById("toolList");
+    list.innerHTML = tools.map(t => `<button class="tool-row" data-tool="${t[3]}"><span class="tool-icon">${t[0]}</span><span><b>${t[1]}</b><small>${t[2]}</small></span><span class="arrow">›</span></button>`).join("");
+
+    const toast = document.getElementById("toast");
+    function notify(message) {
+      toast.textContent = message; toast.classList.add("show");
+      clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+    function showPage(id) {
+      document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === id));
+      document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.page === id));
+    }
+    const descriptions = {
+      chat:"AI-чат подключим к твоей локальной модели Qwen через сервер бота.",
+      photo:"Здесь будет отправка изображения в твою Vision-модель Qwen2.5-VL.",
+      memory:"Память будет храниться в SQLite. Её можно будет просматривать, отключать и очищать.",
+      templates:"Добавим шаблоны для постов, переводов, учёбы и программирования.",
+      characters:"Добавим роли и стили общения. Это будут стили ответов, а не настоящие консультации юриста или психолога.",
+      roleplay:"Добавим интерактивные сценарии с сохранением прогресса.",
+      mood:"Личные записи будут доступны только владельцу аккаунта; анализ не является медицинской диагностикой.",
+      ideas:"Генератор будет создавать идеи с помощью локальной модели.",
+      english:"Добавим диалоговый режим для практики английского.",
+      story:"Текстовые сказки подключим сначала; локальную озвучку добавим отдельным этапом.",
+      recipes:"Vision-модель сможет анализировать фото продуктов и предлагать рецепты.",
+      stylist:"Vision-модель сможет описывать одежду и предлагать сочетания.",
+      document:"Добавим загрузку PDF и DOCX, извлечение текста и краткий пересказ.",
+      url:"Добавим безопасное чтение публичных веб-страниц и пересказ.",
+      wheel:"Ежедневное вращение будет выдавать бесплатные бонусные запросы.",
+      bonus:"Ежедневный бонус: +3 запроса один раз в 24 часа.",
+      referrals:"Здесь появятся персональная ссылка, число приглашённых и таблица лидеров.",
+      promo:"Здесь появится поле для ввода промокода.",
+      language:"Переключение русского и английского интерфейса добавим при подключении настроек.",
+      history:"История будет загружаться из общей SQLite-базы бота.",
+      privacy:"Здесь будут настройки приватности, экспорта и удаления данных."
+    };
+    document.addEventListener("click", e => {
+      const nav = e.target.closest("[data-page]");
+      if (nav) { showPage(nav.dataset.page); return; }
+      const action = e.target.closest("[data-tool]");
+      if (action) {
+        const key = action.dataset.tool;
+        if (key === "chat") { showPage("home"); document.getElementById("prompt").focus(); return; }
+        notify(descriptions[key] || "Эту функцию подключим на следующем этапе.");
+      }
+    });
+    document.getElementById("send").addEventListener("click", () => {
+      const value = document.getElementById("prompt").value.trim();
+      if (!value) { notify("Сначала напиши вопрос."); return; }
+      notify("Интерфейс готов. Следующий этап — подключение к локальной Qwen.");
+      document.getElementById("chatOutput").textContent = "Запрос подготовлен:\n" + value;
+    });
+  </script>
+</body>
+</html>
